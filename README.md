@@ -1,6 +1,7 @@
 # Gemini CLI
 
 [![Gemini CLI CI](https://github.com/google-gemini/gemini-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/google-gemini/gemini-cli/actions/workflows/ci.yml)
+[![Build Android APK](https://github.com/you112ef/gemini-cli/actions/workflows/build-android-apk.yml/badge.svg)](https://github.com/you112ef/gemini-cli/actions/workflows/build-android-apk.yml)
 
 ![Gemini CLI Screenshot](./docs/assets/gemini-screenshot.png)
 
@@ -37,6 +38,26 @@ With the Gemini CLI you can:
 4. **Authenticate:** When prompted, sign in with your personal Google account. This will grant you up to 60 model requests per minute and 1,000 model requests per day using Gemini.
 
 You are now ready to use the Gemini CLI!
+
+## 📱 Mobile App (Android)
+
+We now offer a native Android app that brings Gemini CLI to your mobile device!
+
+### Features
+- 🤖 Chat with Gemini AI directly from your phone
+- 🔒 Secure API key storage
+- 🌙 Dark theme interface
+- 📱 Responsive design for all screen sizes
+- ⚡ Fast and optimized performance
+
+### Download
+[Download the latest APK](https://github.com/you112ef/gemini-cli/releases/latest) from our releases page.
+
+### Setup
+1. Install the APK on your Android device (Android 5.0+)
+2. Get your API key from [Google AI Studio](https://aistudio.google.com/apikey)
+3. Open the app and enter your API key
+4. Start chatting with Gemini!
 
 ### For advanced use or increased limits:
 
