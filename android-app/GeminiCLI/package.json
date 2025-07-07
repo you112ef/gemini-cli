@@ -1,6 +1,6 @@
 {
   "name": "gemini-cli-mobile",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Mobile version of Gemini CLI - AI-powered command line tool",
   "main": "index.js",
   "scripts": {
