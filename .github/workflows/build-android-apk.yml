@@ -1,0 +1,129 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths:
+      - 'android-app/**'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'android-app/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: android-app/GeminiCLI/package-lock.json
+          
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        
+      - name: Install dependencies
+        working-directory: android-app/GeminiCLI
+        run: npm ci
+        
+      - name: Install Expo CLI
+        run: npm install -g @expo/cli
+        
+      - name: Create Expo account (for anonymous builds)
+        working-directory: android-app/GeminiCLI
+        run: |
+          npx expo whoami || echo "Not logged in"
+        
+      - name: Prebuild for Android
+        working-directory: android-app/GeminiCLI
+        run: npx expo prebuild --platform android --clear
+        
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        
+      - name: Make gradlew executable
+        working-directory: android-app/GeminiCLI/android
+        run: chmod +x ./gradlew
+        
+      - name: Build APK
+        working-directory: android-app/GeminiCLI/android
+        run: ./gradlew assembleRelease --no-daemon
+        
+      - name: Sign APK
+        working-directory: android-app/GeminiCLI/android
+        run: |
+          # Create a simple keystore for demo purposes
+          keytool -genkey -v -keystore gemini-cli.keystore -alias gemini-cli-key -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Gemini CLI, OU=Development, O=You112ef, L=Unknown, S=Unknown, C=US"
+          # Sign the APK
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore gemini-cli.keystore -storepass android app/build/outputs/apk/release/app-release-unsigned.apk gemini-cli-key
+          # Align the APK
+          $ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)/zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/gemini-cli-mobile.apk
+          
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: gemini-cli-mobile-apk
+          path: android-app/GeminiCLI/android/app/build/outputs/apk/release/gemini-cli-mobile.apk
+          
+      - name: Create Release
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: android-app/GeminiCLI/android/app/build/outputs/apk/release/gemini-cli-mobile.apk
+          tag: android-v${{ github.run_number }}
+          name: Gemini CLI Mobile v${{ github.run_number }}
+          body: |
+            🤖 **Gemini CLI Mobile APK**
+            
+            تطبيق Android لـ Gemini CLI - أداة سطر الأوامر المدعومة بالذكاء الاصطناعي من Google.
+            
+            ### الميزات الأساسية
+            - 🤖 دردشة مع نماذج AI متعددة (Gemini, GPT, Claude)
+            - 📷 رفع وتحليل الصور مع عرض بملء الشاشة
+            - 🎤 تسجيل وإرسال الرسائل الصوتية
+            - 💬 إدارة محادثات متعددة مع عناوين ذكية
+            - 💾 حفظ تاريخ المحادثات محلياً
+            
+            ### دعم نماذج AI المتعددة (v2.2.0)
+            - 🔑 إدارة مفاتيح API منفصلة لكل مزود
+            - 🔄 تبديل سهل بين Google Gemini, OpenAI, Claude
+            - 🧪 اختبار الاتصال لكل مزود خدمة
+            - 📈 إحصائيات استخدام منفصلة لكل نموذج
+            
+            ### الأدوات المتقدمة
+            - 💻 محرر أكواد مدعوم بالذكاء الاصطناعي
+            - 🌐 بحث على الإنترنت متكامل داخل التطبيق
+            - 🛠️ منشئ مشاريع لإنشاء تطبيقات جديدة
+            - 📦 مساعد إنشاء ملفات APK
+            - 🔔 نظام إشعارات ذكي وإعدادات متقدمة
+            
+            ### التصميم والأمان
+            - 🌙 واجهة مظلمة أنيقة ومتجاوبة
+            - 🔒 تخزين آمن لمفاتيح API وجميع البيانات
+            - ⚡ أداء محسن واستجابة سريعة
+            - 📊 لوحة إحصائيات شاملة لاستخدام التطبيق
+            
+            ### التثبيت
+            1. حمل ملف APK
+            2. مكن "مصادر غير معروفة" في إعدادات Android
+            3. ثبت التطبيق
+            4. أدخل مفتاح Gemini API من [Google AI Studio](https://aistudio.google.com/apikey)
+            
+            **متطلبات النظام:** Android 5.0+ (API Level 21)
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
