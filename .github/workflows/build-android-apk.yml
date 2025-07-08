@@ -2,11 +2,11 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, master, develop ]
     paths:
       - 'android-app/**'
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
     paths:
       - 'android-app/**'
   workflow_dispatch:
@@ -80,7 +80,7 @@ jobs:
           path: android-app/GeminiCLI/android/app/build/outputs/apk/release/gemini-cli-mobile.apk
           
       - name: Create Release
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: ncipollo/release-action@v1
         with:
           artifacts: android-app/GeminiCLI/android/app/build/outputs/apk/release/gemini-cli-mobile.apk
